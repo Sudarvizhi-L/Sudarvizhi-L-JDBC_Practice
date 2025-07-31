@@ -1,4 +1,4 @@
-package com.temperaturedata.Dao;
+package com.project.Dao;
 
 import com.project.model.Building;
 
