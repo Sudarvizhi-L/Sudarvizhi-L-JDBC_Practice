@@ -25,10 +25,12 @@ public class BuildingDaoTest {
             statement.execute("""
                      CREATE TABLE building(
                      id INT AUTO_INCREMENT PRIMARY KEY,
-                     colour VARCHAR(255), 
-                     shape VARCHAR(255), name VARCHAR(255), 
-                     bulidingNumber INT, 
-                     noOfFloors INT ,height DOUBLE)
+                     name VARCHAR(255),
+                     latitude VARCHAR(40),
+                     longitude VARCHAR(40),
+                     height INT,
+                     area INT,
+                     location_id INT FOREIGN KEY
         """);
 
         }
@@ -38,18 +40,18 @@ public class BuildingDaoTest {
 
     @Test
     public void testSave() throws SQLException {
-        Building building = buildingDao.save(new Building(null,"Blue","Circle","IT Park",001,25,222.3));
-        assertEquals("Blue",building.colour(),"Insert Failed");
+        Building building = buildingDao.save(new Building(null,"Building A","23.44","78.32",400,700,1));
+        assertEquals("Building A",building.name(),"Insert Failed");
 
-        Building update = buildingDao.save(new Building(building.id(), "Light Blue", building.shape(), building.name(), building.bulidingNumber(),building.noOfFloors(), building.height()));
+        Building update = buildingDao.save(new Building(null,"Building Blue","23.44","78.32",400,700,1));
         assertEquals(update.id(),building.id());
-        assertEquals("Light Blue",update.colour(),"Not updated");
+        assertEquals("Building Blue",update.name(),"Not updated");
 
     }
     @Test
     public void testFindAll() throws SQLException {
-        buildingDao.save(new Building(null,"Blue","Circle","IT Park",001,25,222.3));
-        buildingDao.save(new Building(null,"Blue","Circle","IT Park",002,26,221.3));
+        buildingDao.save(new Building(null,"Building Blue","33.45","89.432",320,112,1));
+        buildingDao.save(new Building(null,"Building Green","78.98","312.45",450,567,1));
         var buildingCount = buildingDao.findAll();
         assertEquals(2,buildingCount.size());
 
@@ -57,31 +59,31 @@ public class BuildingDaoTest {
 
     @Test
     public void testFindById() throws SQLException {
-        var buildings = buildingDao.save(new Building(null,"Blue","Circle","IT Park",002,26,221.3));
+        var buildings = buildingDao.save(new Building(null,"Building Blue","21.45","83.54",200,2006,1));
         var result = buildingDao.findById(buildings.id());
         Assertions.assertTrue(result.isPresent());
-        assertEquals("Blue",result.get().colour());
+        assertEquals("Building Blue",result.get().name());
     }
 
     @Test
     public void testDeleteAll() throws SQLException {
-        buildingDao.save(new Building(null,"Blue","Circle","IT Park",001,25,222.3));
-        buildingDao.save(new Building(null,"Blue","Circle","IT Park",002,26,221.3));
+        buildingDao.save(new Building(null,"Blue","Circle","IT Park",001,25,1));
+        buildingDao.save(new Building(null,"Blue","Circle","IT Park",002,26,1));
         buildingDao.deleteAll();
         assertEquals(0,buildingDao.count());
     }
 
     @Test
     public void testCount() throws SQLException {
-        buildingDao.save(new Building(null,"Blue","Circle","IT Park",001,25,222.3));
-        buildingDao.save(new Building(null,"Blue","Circle","IT Park",002,26,221.3));
+        buildingDao.save(new Building(null,"Blue","Circle","IT Park",001,25,1));
+        buildingDao.save(new Building(null,"Blue","Circle","IT Park",002,26,1));
         assertEquals(2,buildingDao.count());
 
     }
 
     @Test
     public void testDeleteById() throws SQLException {
-        var building = buildingDao.save(new Building(null,"Blue","Circle","IT Park",001,25,222.3));
+        var building = buildingDao.save(new Building(null,"Blue","Circle","IT Park",001,25,1));
         buildingDao.deleteById(building.id());
         assertTrue(buildingDao.findById(building.id()).isEmpty());
 

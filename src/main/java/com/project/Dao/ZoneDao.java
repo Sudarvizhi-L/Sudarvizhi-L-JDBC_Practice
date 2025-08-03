@@ -18,39 +18,36 @@ public class ZoneDao {
 
     public Zone save(Zone zone) {
         try (Connection connection = dataSource.getConnection()) {
-            if (zone.id() == null) {
+            if (zone.zone_id() == null) {
                 // INSERT
                 String insertSql = """
-                    INSERT INTO zone (zoneNumber, noOfroom, zoneType, floorId) VALUES (?, ?, ?, ?)
+                    INSERT INTO zone (zone_no, floor_id) VALUES (?, ?)
                 """;
                 try (PreparedStatement ps = connection.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
-                    ps.setInt(1, zone.zoneNumber());
-                    ps.setInt(2, zone.noOfroom());
-                    ps.setString(3, zone.zoneType());
-                    ps.setInt(4, zone.floorId());
-
+                    ps.setInt(1, zone.zone_no());
+                    ps.setInt(2, zone.floor_id());
                     ps.executeUpdate();
+
                     try (ResultSet rs = ps.getGeneratedKeys()) {
                         if (rs.next()) {
-                            return new Zone(rs.getInt(1), zone.zoneNumber(), zone.noOfroom(), zone.zoneType(), zone.floorId());
+                            return new Zone(rs.getInt(1), zone.zone_no(), zone.floor_id());
                         }
                     }
                 }
+
             } else {
                 // UPDATE
                 String updateSql = """
-                    UPDATE zone SET zoneNumber = ?, noOfroom = ?, zoneType = ?, floorId = ? WHERE id = ?
+                    UPDATE zone SET zone_no = ?, floor_id = ? WHERE zone_id = ?
                 """;
                 try (PreparedStatement ps = connection.prepareStatement(updateSql)) {
-                    ps.setInt(1, zone.zoneNumber());
-                    ps.setInt(2, zone.noOfroom());
-                    ps.setString(3, zone.zoneType());
-                    ps.setInt(4, zone.floorId());
-                    ps.setInt(5, zone.id());
-
+                    ps.setInt(1, zone.zone_no());
+                    ps.setInt(2, zone.floor_id());
+                    ps.setInt(3, zone.zone_id());
                     ps.executeUpdate();
                     return zone;
                 }
+
             }
         } catch (SQLException e) {
             throw new RuntimeException("Error saving zone: " + e.getMessage(), e);
@@ -59,7 +56,7 @@ public class ZoneDao {
     }
 
     public Optional<Zone> findById(int id) {
-        String sql = "SELECT * FROM zone WHERE id = ?";
+        String sql = "SELECT * FROM zone WHERE zone_id = ?";
         try (Connection connection = dataSource.getConnection();
              PreparedStatement ps = connection.prepareStatement(sql)) {
 
@@ -67,11 +64,9 @@ public class ZoneDao {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return Optional.of(new Zone(
-                            rs.getInt("id"),
-                            rs.getInt("zoneNumber"),
-                            rs.getInt("noOfroom"),
-                            rs.getString("zoneType"),
-                            rs.getInt("floorId")
+                            rs.getInt("zone_id"),
+                            rs.getInt("zone_no"),
+                            rs.getInt("floor_id")
                     ));
                 }
             }
@@ -90,11 +85,9 @@ public class ZoneDao {
 
             while (rs.next()) {
                 zones.add(new Zone(
-                        rs.getInt("id"),
-                        rs.getInt("zoneNumber"),
-                        rs.getInt("noOfroom"),
-                        rs.getString("zoneType"),
-                        rs.getInt("floorId")
+                        rs.getInt("zone_id"),
+                        rs.getInt("zone_no"),
+                        rs.getInt("floor_id")
                 ));
             }
         } catch (SQLException e) {
@@ -104,7 +97,7 @@ public class ZoneDao {
     }
 
     public void deleteById(int id) {
-        String sql = "DELETE FROM zone WHERE id = ?";
+        String sql = "DELETE FROM zone WHERE zone_id = ?";
         try (Connection connection = dataSource.getConnection();
              PreparedStatement ps = connection.prepareStatement(sql)) {
 
@@ -114,6 +107,7 @@ public class ZoneDao {
             throw new RuntimeException("Error deleting zone by ID", e);
         }
     }
+
 
     public void deleteAll() {
         String sql = "DELETE FROM zone";

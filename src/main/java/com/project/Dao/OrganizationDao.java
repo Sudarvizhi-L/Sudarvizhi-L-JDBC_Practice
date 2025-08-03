@@ -19,31 +19,27 @@ public class OrganizationDao {
     public Organization save(Organization org) {
         try (Connection conn = dataSource.getConnection()) {
             if (org.id() == null) {
-                String sql = "INSERT INTO organization(name, certificateid, type, email, phone, ceo) VALUES (?, ?, ?, ?, ?, ?)";
+                String sql = "INSERT INTO organization(name, contactNo, email, website) VALUES (?, ?, ?, ?)";
                 PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
                 ps.setString(1, org.name());
-                ps.setString(2, org.certificateid());
-                ps.setString(3, org.type());
-                ps.setString(4, org.email());
-                ps.setString(5, org.phone());
-                ps.setString(6, org.ceo());
+                ps.setString(2, org.contactNo());
+                ps.setString(3, org.email());
+                ps.setString(4, org.website());
                 ps.executeUpdate();
 
                 ResultSet keys = ps.getGeneratedKeys();
                 if (keys.next()) {
-                    return new Organization(keys.getInt(1), org.name(), org.certificateid(), org.type(), org.email(), org.phone(), org.ceo());
+                    return new Organization(keys.getInt(1), org.name(), org.contactNo(), org.email(), org.website());
                 }
                 return null;
             } else {
-                String sql = "UPDATE organization SET name=?, certificateid=?, type=?, email=?, phone=?, ceo=? WHERE id=?";
+                String sql = "UPDATE organization SET name=?, contactNo=?, email=?, website=? WHERE id=?";
                 PreparedStatement ps = conn.prepareStatement(sql);
                 ps.setString(1, org.name());
-                ps.setString(2, org.certificateid());
-                ps.setString(3, org.type());
-                ps.setString(4, org.email());
-                ps.setString(5, org.phone());
-                ps.setString(6, org.ceo());
-                ps.setInt(7, org.id());
+                ps.setString(2, org.contactNo());
+                ps.setString(3, org.email());
+                ps.setString(4, org.website());
+                ps.setInt(5, org.id());
                 ps.executeUpdate();
                 return org;
             }
@@ -61,11 +57,9 @@ public class OrganizationDao {
                 return Optional.of(new Organization(
                         rs.getInt("id"),
                         rs.getString("name"),
-                        rs.getString("certificateid"),
-                        rs.getString("type"),
+                        rs.getString("contactNo"),
                         rs.getString("email"),
-                        rs.getString("phone"),
-                        rs.getString("ceo")
+                        rs.getString("website")
                 ));
             }
             return Optional.empty();
@@ -84,11 +78,9 @@ public class OrganizationDao {
                 list.add(new Organization(
                         rs.getInt("id"),
                         rs.getString("name"),
-                        rs.getString("certificateid"),
-                        rs.getString("type"),
+                        rs.getString("contactNo"),
                         rs.getString("email"),
-                        rs.getString("phone"),
-                        rs.getString("ceo")
+                        rs.getString("website")
                 ));
             }
             return list;

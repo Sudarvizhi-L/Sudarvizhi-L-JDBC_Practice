@@ -17,20 +17,20 @@ public class BuildingDao {
 
     public Building save(Building building) throws SQLException {
         if(building.id() == null) {
-            final String insertSql = "INSERT INTO building (colour, shape, name, bulidingNumber, noOfFloors ,height) VALUES(?,?,?,?,?,?)";
+            final String insertSql = "INSERT INTO building (id, name, latitude, longitude, height ,area, location_id) VALUES(?,?,?,?,?,?,?)";
             try (Connection connection = dataSource.getConnection();
                  PreparedStatement preparedStatement = connection.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
-                preparedStatement.setString(1, building.colour());
-                preparedStatement.setString(2, building.shape());
-                preparedStatement.setString(3, building.name());
-                preparedStatement.setInt(4, building.bulidingNumber());
-                preparedStatement.setInt(5, building.noOfFloors());
-                preparedStatement.setDouble(6, building.height());
+                preparedStatement.setString(2, building.name());
+                preparedStatement.setString(3, building.latitude());
+                preparedStatement.setString(3, building.longitude());
+                preparedStatement.setInt(4, building.height());
+                preparedStatement.setInt(5, building.area());
+                preparedStatement.setInt(6, building.location_id());
                 preparedStatement.execute();
                 try (ResultSet resultSet = preparedStatement.getGeneratedKeys()) {
                     if (resultSet.next()) {
-                        return new Building(resultSet.getInt(1), building.colour(), building.shape(), building.name(), building.bulidingNumber(),
-                                building.noOfFloors(), building.height());
+                        return new Building(resultSet.getInt(1), building.name(), building.latitude(), building.longitude(),
+                                building.height(), building.area(), building.location_id());
                     }
                 }
             }
@@ -44,7 +44,7 @@ public class BuildingDao {
                 PreparedStatement preparedStatement = connection.prepareStatement(updateSql)){
                 preparedStatement.setInt(1,building.id());
                 preparedStatement.executeUpdate();
-                return new Building(building.id(), building.colour(), building.shape(), building.name(), building.bulidingNumber(), building.noOfFloors(), building.height());
+                return new Building(building.id(), building.name(), building.latitude(), building.longitude(), building.height(), building.area(), building.location_id());
             }
         }
 
@@ -52,7 +52,7 @@ public class BuildingDao {
     }
 
     public List<Building> findAll() throws SQLException {
-        final String findSql = "SELECT id, colour, shape, name, bulidingNumber, noOfFloors, height FROM building";
+        final String findSql = "SELECT id, name, latitude, longitude, height, area, location_id FROM building";
         List<Building> listBuilding = new ArrayList<>();
         try(Connection connection = dataSource.getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(findSql);
@@ -60,12 +60,12 @@ public class BuildingDao {
             while(resultSet.next()){
                 listBuilding.add(new Building(
                         resultSet.getInt("id"),
-                        resultSet.getString("colour"),
-                        resultSet.getString("shape"),
                         resultSet.getString("name"),
-                        resultSet.getInt("bulidingNumber"),
-                        resultSet.getInt("noOfFloors"),
-                        resultSet.getDouble("height")
+                        resultSet.getString("latitude"),
+                        resultSet.getString("longitude"),
+                        resultSet.getInt("height"),
+                        resultSet.getInt("area"),
+                        resultSet.getInt("location_id")
 
                 ));
             }
@@ -77,7 +77,7 @@ public class BuildingDao {
     }
 
     public Optional<Building> findById(final int id) throws SQLException {
-        final String findSqll = "SELECT id, colour, shape, name, bulidingNumber, noOfFloors, height FROM building WHERE id = ?";
+        final String findSqll = "SELECT id, name, latitude, longitude, height, area, location_id FROM building WHERE id = ?";
         try(Connection connection = dataSource.getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(findSqll)){
             preparedStatement.setInt(1,id);
@@ -85,12 +85,12 @@ public class BuildingDao {
                 if(resultSet.next()){
                     return Optional.of(new Building(
                             resultSet.getInt("id"),
-                            resultSet.getString("colour"),
-                            resultSet.getString("shape"),
                             resultSet.getString("name"),
-                            resultSet.getInt("bulidingNumber"),
-                            resultSet.getInt("noOfFloors"),
-                            resultSet.getDouble("height")
+                            resultSet.getString("latitude"),
+                            resultSet.getString("longitude"),
+                            resultSet.getInt("height"),
+                            resultSet.getInt("area"),
+                            resultSet.getInt("location_id")
                     ));
 
                 }

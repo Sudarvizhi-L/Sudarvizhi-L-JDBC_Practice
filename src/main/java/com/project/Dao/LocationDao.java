@@ -17,25 +17,18 @@ public class LocationDao {
     }
 
     public Location save(Location location) {
-        if (location.id() == null) {
+        if (location.location_id() == null) {
             String sql = """
-                INSERT INTO location (doorno, street, areaname, city, district, state, country, pincode, latitude, longitude)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO location (name, address, org_id)
+                VALUES (?, ?, ?)
             """;
 
             try (Connection conn = dataSource.getConnection();
                  PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-                stmt.setString(1, location.doorno());
-                stmt.setInt(2, location.street());
-                stmt.setString(3, location.areaname());
-                stmt.setString(4, location.city());
-                stmt.setString(5, location.district());
-                stmt.setString(6, location.state());
-                stmt.setString(7, location.country());
-                stmt.setString(8, location.pincode());
-                stmt.setDouble(9, location.latitude());
-                stmt.setDouble(10, location.longitude());
+                stmt.setString(1, location.name());
+                stmt.setString(2, location.address());
+                stmt.setInt(3,location.org_id());
 
                 stmt.executeUpdate();
 
@@ -43,16 +36,9 @@ public class LocationDao {
                     if (keys.next()) {
                         return new Location(
                                 keys.getInt(1),
-                                location.doorno(),
-                                location.street(),
-                                location.areaname(),
-                                location.city(),
-                                location.district(),
-                                location.state(),
-                                location.country(),
-                                location.pincode(),
-                                location.latitude(),
-                                location.longitude()
+                                location.name(),
+                                location.address(),
+                                location.org_id()
                         );
                     }
                 }
@@ -61,24 +47,18 @@ public class LocationDao {
             }
         } else {
             String sql = """
-                UPDATE location SET doorno=?, street=?, areaname=?, city=?, district=?, state=?, country=?, pincode=?, latitude=?, longitude=?
-                WHERE id=?
+                UPDATE location SET name=?, address=?, org_id=?
+                WHERE location_id=?
             """;
 
             try (Connection conn = dataSource.getConnection();
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-                stmt.setString(1, location.doorno());
-                stmt.setInt(2, location.street());
-                stmt.setString(3, location.areaname());
-                stmt.setString(4, location.city());
-                stmt.setString(5, location.district());
-                stmt.setString(6, location.state());
-                stmt.setString(7, location.country());
-                stmt.setString(8, location.pincode());
-                stmt.setDouble(9, location.latitude());
-                stmt.setDouble(10, location.longitude());
-                stmt.setInt(11, location.id());
+
+                stmt.setString(1, location.name());
+                stmt.setString(2, location.address());
+                stmt.setInt(3, location.org_id());
+                stmt.setInt(4, location.location_id());
 
                 stmt.executeUpdate();
                 return location;
@@ -92,7 +72,7 @@ public class LocationDao {
     }
 
     public Optional<Location> findById(int id) {
-        String sql = "SELECT * FROM location WHERE id = ?";
+        String sql = "SELECT * FROM location WHERE location_id = ?";
 
         try (Connection conn = dataSource.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -132,7 +112,7 @@ public class LocationDao {
     }
 
     public void deleteById(int id) {
-        String sql = "DELETE FROM location WHERE id = ?";
+        String sql = "DELETE FROM location WHERE location_id = ?";
 
         try (Connection conn = dataSource.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -160,17 +140,10 @@ public class LocationDao {
 
     private Location mapRow(ResultSet rs) throws SQLException {
         return new Location(
-                rs.getInt("id"),
-                rs.getString("doorno"),
-                rs.getInt("street"),
-                rs.getString("areaname"),
-                rs.getString("city"),
-                rs.getString("district"),
-                rs.getString("state"),
-                rs.getString("country"),
-                rs.getString("pincode"),
-                rs.getDouble("latitude"),
-                rs.getDouble("longitude")
+                rs.getInt("location_id"),
+                rs.getString("name"),
+                rs.getString("address"),
+                rs.getInt("org_id")
         );
     }
 }

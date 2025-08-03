@@ -17,29 +17,26 @@ public class FloorDao {
 
     public Floor save(Floor floor) {
         try (Connection connection = dataSource.getConnection()) {
-            if (floor.id() == null) {
-                final String insertSql = "INSERT INTO floor(name, noOfZone, floorNumber, buildingId) VALUES (?, ?, ?, ?)";
+            if (floor.floor_id() == null) {
+                final String insertSql = "INSERT INTO floor( floor_no, building_id) VALUES (?, ?)";
                 try (PreparedStatement ps = connection.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
-                    ps.setString(1, floor.name());
-                    ps.setInt(2, floor.noOfZone());
-                    ps.setInt(3, floor.floorNumber());
-                    ps.setInt(4, floor.buildingId());
+                    //ps.setInt(1, floor.floor_id());
+                    ps.setInt(1, floor.floor_no());
+                    ps.setInt(2, floor.building_id());
 
                     ps.executeUpdate();
                     try (ResultSet rs = ps.getGeneratedKeys()) {
                         if (rs.next()) {
-                            return new Floor(rs.getInt(1), floor.name(), floor.noOfZone(), floor.floorNumber(), floor.buildingId());
+                            return new Floor(rs.getInt(1), floor.floor_no(), floor.building_id());
                         }
                     }
                 }
             } else {
-                final String updateSql = "UPDATE floor SET name = ?, noOfZone = ?, floorNumber = ?, buildingId = ? WHERE id = ?";
+                final String updateSql = "UPDATE floor SET floor_no = ?, building_id = ? WHERE id = ?";
                 try (PreparedStatement ps = connection.prepareStatement(updateSql)) {
-                    ps.setString(1, floor.name());
-                    ps.setInt(2, floor.noOfZone());
-                    ps.setInt(3, floor.floorNumber());
-                    ps.setInt(4, floor.buildingId());
-                    ps.setInt(5, floor.id());
+                    ps.setInt(1, floor.floor_no());
+                    ps.setInt(2, floor.building_id());
+                    ps.setInt(3, floor.floor_id());
 
                     ps.executeUpdate();
                     return floor;
@@ -60,11 +57,9 @@ public class FloorDao {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return Optional.of(new Floor(
-                            rs.getInt("id"),
-                            rs.getString("name"),
-                            rs.getInt("noOfZone"),
-                            rs.getInt("floorNumber"),
-                            rs.getInt("buildingId")
+                            rs.getInt("floor_id"),
+                            rs.getInt("floor_no"),
+                            rs.getInt("building_id")
                     ));
                 }
             }
@@ -83,11 +78,9 @@ public class FloorDao {
 
             while (rs.next()) {
                 floors.add(new Floor(
-                        rs.getInt("id"),
-                        rs.getString("name"),
-                        rs.getInt("noOfZone"),
-                        rs.getInt("floorNumber"),
-                        rs.getInt("buildingId")
+                        rs.getInt("floor_id"),
+                        rs.getInt("floor_no"),
+                        rs.getInt("building_id")
                 ));
             }
         } catch (SQLException e) {
