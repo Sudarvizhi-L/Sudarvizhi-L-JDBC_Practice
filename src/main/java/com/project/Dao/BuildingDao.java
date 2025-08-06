@@ -34,9 +34,6 @@ public class BuildingDao {
                     }
                 }
             }
-
-
-
         }
         else{
             final String updateSql = "UPDATE building SET colour WHERE id = ?";

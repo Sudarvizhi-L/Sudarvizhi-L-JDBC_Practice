@@ -1,0 +1,179 @@
+create table organization(
+	name varchar(255) not null,
+	contactNo varchar(20) not null,
+	email varchar(50) not null,
+	website varchar(50) not null,
+	id serial primary key
+);
+
+create table org_location(
+	name varchar(255) not null,
+	address varchar(255) not null,
+	location_id serial primary key
+);
+
+alter table org_location add column org_id integer;
+
+alter table org_location add foreign key (org_id) references organization;
+
+create table building(
+	name varchar(255) not null,
+	latitude varchar(50) not null,
+	longitude varchar(50) not null,
+	height integer not null,
+	area integer not null,
+	id serial primary key,
+	location_id integer references org_location
+);
+
+create table floor(
+	floor_id serial primary key,
+	floor_no integer not null ,
+	building_id integer references building
+);
+
+
+create table zone(
+	zone_id serial primary key,
+	zone_no integer not null,
+	floor_id integer references floor
+);
+
+create table sensor(
+	sensor_id serial primary key,
+	sensor_no integer not null,
+	zone_id integer references zone
+);
+
+create table temperatureData(
+	temperature integer not null,
+	date_time timestamp not null,
+	sensor_id integer references sensor
+);
+
+insert into organization values ('Ourkadai Technologies', '9832112345', 'contact@ourkadai.com', 'www.ourkadai.com');
+
+select id from organization where name='Ourkadai Technologies';
+
+insert into org_location (name, address, org_id) values ('Madurai', 'Othakadai', (select id from organization where name='Ourkadai Technologies'));
+
+select * from org_location;
+
+insert into org_location (name, address, org_id) values ('Chennai', 'Velacheri', (select id from organization where name='Ourkadai Technologies'));
+
+select * from org_location;
+
+insert into building (name, latitude, longitude, height, area, location_id) values ('Building1', '23', '25', 400, 700, (select location_id from org_location where name='Madurai'));
+
+insert into building (name, latitude, longitude, height, area, location_id) values ('Building2', '23', '22', 500, 800, (select location_id from org_location where name='Madurai'));
+
+select * from building;
+
+insert into building (name, latitude, longitude, height, area, location_id) values ('Building1', '44', '35', 400, 700, (select location_id from org_location where name='Chennai'));
+
+insert into building (name, latitude, longitude, height, area, location_id) values ('Building2', '33', '35', 450, 700, (select location_id from org_location where name='Chennai'));
+
+select * from building;
+
+update building set name = 'Gurukulam' where id = 1
+
+update building set name='Chrome', area = 1200, height = 1700 where id = 3;
+
+insert into building (name, latitude, longitude, height, area, location_id) values ('Santhi', '33', '35', 450, 700, (select location_id from org_location where name='Chennai'));
+
+delete from building where id = 4;
+
+insert into floor (floor_no, building_id) values (generate_series(1,20), 1);
+
+select * from floor;
+
+insert into floor (floor_no, building_id) values (generate_series(1,20), 2);
+
+insert into floor (floor_no, building_id) values (generate_series(1,20), 3);
+
+insert into floor (floor_no, building_id) values (generate_series(1,20), 5);
+
+insert into zone (zone_no, floor_id) select generate_series(1,2), f.floor_id  from floor f;
+
+select * from zone;
+
+truncate sensor cascade;
+
+insert into sensor (sensor_no, zone_id)
+select random_between(100,40000), z.zone_id from zone z;
+
+CREATE OR REPLACE FUNCTION random_between(low INT ,high INT)
+   RETURNS INT AS
+$$
+BEGIN
+   RETURN floor(random()* (high-low + 1) + low);
+END;
+$$ LANGUAGE 'plpgsql' STRICT;
+
+select round(random()*(200 - 100) + 100)::int r_num from generate_series(100, 200) group by 1;
+
+select * from sensor;
+
+select count(distinct sensor_no) from sensor;
+
+select count(sensor_no) from sensor;
+
+select floor_no, building_id from floor;
+
+select floor_no, building_id from floor where building_id = 2;
+
+select floor_no, building_id from floor where building_id = 2 and floor_no % 2 = 0 and floor_no > 10;
+
+select count(*) from floor;
+
+select count(*), building_id from floor group by building_id;
+
+select count(*), building_id from floor group by building_id order by building_id desc;
+
+select count(*), building_id from floor group by building_id having building_id > 3;
+
+select count(*), building_id from floor group by building_id having count(floor_no) > 10;
+
+select count(*), building_id from floor group by building_id order by building_id desc limit 2;
+
+select  b.name, f.floor_no from building b, floor f where b.id = f.building_id;
+
+select  b.name, count(f.floor_no) from building b, floor f where b.id = f.building_id group by b.name;
+
+select  b.name, count(f.floor_no) from building b, floor f where b.id = f.building_id and f.building_id > 3 group by b.name;
+
+select  b.name, count(distinct f.floor_no) as floor_count , count(z.zone_no) as zone_count
+from building b, floor f, zone z
+where b.id = f.building_id and f.floor_id = z.floor_id
+group by b.name;
+
+truncate temperatureData;
+
+insert into temperatureData (sensor_id, date_time, temperature)
+select s.sensor_id, generate_series('2025-07-31' :: timestamp, '2026-07-30':: timestamp, '5 minutes'),
+random_between(15, 32) from sensor s;
+
+select * from temperatureData;
+
+select sensor_id, temperature, date_time from temperatureData
+where temperature < 18 or temperature > 28 and date_time >= current_timestamp - interval '5 minutes' and date_time < current_timestamp;
+
+select sensor_id, temperature, date_time from temperatureData
+where date_time >= current_timestamp - interval '5 minutes' and date_time < current_timestamp and (temperature < 18 or temperature > 28);
+
+select sensor_id, temperature, date_time,  from temperatureData
+where date_time >= current_timestamp - interval '5 minutes' and
+date_time < current_timestamp and
+(temperature < 18 or temperature > 28);
+
+select o.name as organization_name, org.name as organization_location, b.name as building_name , f.floor_no, z.zone_no, s.sensor_no, t.temperature, t.date_time
+from organization o
+join org_location org on org.org_id = o.id
+join building b on b.location_id = org.location_id
+join floor f on f.building_id = b.id
+join zone z on z.floor_id = f.floor_id
+join sensor s on s.zone_id = z.zone_id
+join temperatureData t on t.sensor_id = s.sensor_id
+where date_time >= current_timestamp - interval '5 minutes' and
+date_time < current_timestamp and
+(temperature < 18 or temperature > 28);
